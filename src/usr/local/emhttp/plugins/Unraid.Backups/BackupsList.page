@@ -1,0 +1,75 @@
+Menu="Backups:1"
+Title="User Backups"
+Tag="user-circle"
+Cond="_var($var,'fsState')!='Stopped' && _var($var,'shareUser')=='e'"
+---
+<?PHP
+/* Copyright 2005-202, Lime Technology
+ * Copyright 2012-2024, Bergware International.
+ * Copyright 2012-2024, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+$plugin = "Unraid.Backups";
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+/* Function to filter out unwanted disks, check if any valid disks exist, and ignore disks with a blank device. */
+function checkDisks($disks) {
+	global $pools, $poolsOnly;
+
+	$rc		= false;
+
+	foreach ($disks as $disk) {
+		/* Check the disk type, fsStatus, and ensure the device is not blank. */
+		if (!in_array($disk['name'], ['flash', 'parity', 'parity2']) && strpos($disk['fsStatus'], 'Unmountable') === false && !empty($disk['device'])) {
+			/* A valid disk with a non-blank device is found. */
+			$rc	= true;
+
+			break;
+		}
+	}
+
+	return $rc;
+}
+
+/* If the configuration is pools only, then no array disks are available. */
+$poolsOnly	= ((int)$var['SYS_ARRAY_SLOTS'] <= 2) ? true : false;
+
+/* Are there any array disks? */
+$disks		= parse_ini_file('state/disks.ini',true) ?? [];
+$nodisks	= checkDisks($disks) ? "" : "disabled";
+?>
+
+<table class="unraid backups_status">
+<thead><tr><td>_(Name)_</td><td>_(Source)_</td><td>_(Destination)_</td><td>_(Schedules)_</td><td>_(Enabled)_</td><td>_(Run/Progress)_</td><td>_(Next run)_</td></tr></thead>
+<tbody id="backupslist"></tbody>
+</table>
+
+<form name="backups_form" method="POST" action="<?=htmlspecialchars($path)?>/Share?name=">
+<input type="submit" value="_(Add Backup)_" <?echo $nodisks;?>>
+</form>
+
+:share_list_help:
+
+<script>
+function backupsList(name,all) {
+  timers.backupsList = setTimeout(function(){$('div.spinner.fixed').show();},500);
+  $.post('/plugins/<?=$plugin?>/include/BackupsList.php',{compute:name,path:"<?=rawurlencode($path)?>",all:all},function(data){
+    clearTimeout(timers.backupsList);
+    $('div.spinner.fixed').hide();
+    $('#backupslist').html(data);
+    if (all!=1) $('#compute-shares').prop('disabled',!data||data.indexOf('colspan=')!=-1);
+  });
+}
+$(function(){
+  // enable CLEAN_UP button only when unused files are present
+
+  backupsList('',0);
+});
+</script>
