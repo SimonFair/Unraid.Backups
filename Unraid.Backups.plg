@@ -4,7 +4,7 @@
 <!ENTITY author    "SimonFair">
 <!ENTITY version   "2024.09.07">
 <!ENTITY launch    "Settings/BackupsList">
-<!ENTITY gitURL    "https://raw.githubusercontent.com/SimonFair/&name;-unraid/master">
+<!ENTITY gitURL    "https://raw.githubusercontent.com/SimonFair/&name;/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY pkgURL    "&gitURL;/pkg">
 <!ENTITY plgPATH   "/boot/config/plugins/&name;">
