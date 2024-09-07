@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Containers>
+    <Plugin>True</Plugin>
+    <PluginURL>https://raw.githubusercontent.com/b3rs3rk/gpustat-unraid/master/gpustat.plg</PluginURL>
+    <PluginAuthor>SimonFair</PluginAuthor>
+    <Beta>true</Beta>
+    <Category>Tools:System Drivers:</Category>
+    <Date>2024-09-07</Date>
+    <Name>Unraid Backups</Name>
+    <Description>
+        Unraid Backups
+    </Description>
+    <MinVer>7.0</MinVer>
+    <Project>https://github.com/SimonFair/Unraid.Backups</Project>
+    <License>MIT License - Copyright 2024- SimonFair</License>
+</Containers>
