@@ -1,0 +1,111 @@
+#!/usr/bin/php
+<?php
+
+
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
+
+#	require_once "$docroot/plugins/unassigned.devices/include/lib.php";
+    require_once "$docroot/plugins/usb_manager/include/lib_usb_manager.php";
+	require_once "$docroot/webGui/include/Helpers.php";
+	
+	require_once "$docroot/webGui/include/Custom.php";
+	
+	require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
+	
+    require_once "/usr/local/emhttp/plugins/dynamix.vm.manager/include/libvirt.php";
+
+    require_once "$docroot/plugins/dynamix.plugin.manager/include/PluginHelpers.php"; 
+ #   require_once "$docroot/plugins/WOL4Services/include/WOL.php"; 
+
+
+ $file = "/etc/libvirt/virtiofsd.opt";
+ $whole_cmd = '';
+ $long_options = ["vm:","print-capabilities","syslog","daemonize","rlimit-nofile","thread-pool-size:","socket-path:","socket-group:","help","version","source:"];
+ $short_options = "v:"; 
+ $argoptions = getopt($short_options,$long_options);
+ 
+/*
+ array_shift($argv);
+ foreach ($argv as $i=>$arg) {
+     if (strpos($arg, "--fd") !== false) unset($argv[$i]) ;
+     if ($arg == "-o") { unset($argv[$i]);unset($argv[$i+1]);		}
+ }
+ # Check if options file exists. Each option should be on a new line.
+ if (is_file($file)) $options = explode("\n",file_get_contents($file)) ; else $options =  ['--syslog','--inode-file-handles=mandatory','--announce-submounts'];
+ $options[] = "--fd=".$argoptions['fd'];
+ 
+ if (isset($argoptions['o'])) {
+     $virtiofsoptions = explode(',',$argoptions["o"]);
+     foreach ($virtiofsoptions as $opt) {
+         $optsplit = explode('=',$opt);
+         switch ($optsplit[0]) {
+             case "source":
+                 $options[] = "--shared-dir={$optsplit[1]}";
+                 break;
+             case "cache":
+                 $options[] = "--cache=never";
+                 break;
+             case "xattr":
+                 $options[] = "--xattr";
+                 break;
+             case "sandbox":
+                 $options[] = "--sandbox={$optsplit[1]}";
+                 break;
+         }
+     }
+ }
+ 
+ $newargs = array_merge($options,$argv);
+ foreach($newargs as $arg) {
+     if ($arg != "") $whole_cmd.= escapeshellarg($arg).' ';
+ }
+ echo trim($whole_cmd);
+*/
+#var_dump( $argoptions);
+#$vm = "Debian22";
+
+$vm = $argoptions['vm'];
+$backupName= "B" . date("YmdHis");
+
+
+$backup = "shutdownNS";
+
+echo "VMBackup\n";
+
+switch($backup) {
+    case "shutdownNS":
+
+
+$disks =$lv->get_disk_stats($vm) ;
+$cdrom = $lv->get_cdrom_stats($vm) ;
+
+#var_dump($disks,$cdrom);
+
+file_put_contents("/tmp/filelist","/tmp/filelist\n");
+foreach ($disks as $disk) {
+    echo "{$disk['device']} {$disk['file']}\n";
+   if (isset($disk['file'])) file_put_contents("/tmp/filelist","{$disk['file']}\n",FILE_APPEND);
+    echo "{$disk['device']} {$disk['partition']}\n";
+    if (isset($disk['partition'])) file_put_contents("/tmp/filelist","{$disk['partition']}\n",FILE_APPEND);
+}
+if (is_file("/etc/libvirt/qemu/$vm.xml")) file_put_contents("/tmp/filelist","/etc/libvirt/qemu/$vm.xml\n",FILE_APPEND);
+$dom = $lv->get_domain_by_name($vm);
+$uuid = $lv->domain_get_uuid($dom);
+echo "UUID $uuid\n";
+
+
+file_put_contents("/tmp/filelist","/etc/libvirt/qemu/nvram/{$uuid}_VARS-pure-efi.fd\n",FILE_APPEND);
+#file_put_contents("/tmp/filelist","/tmp/filelist\n",FILE_APPEND);
+
+shell_exec("tar -cvf - -T /tmp/filelist | pv -ptre -s $(du -bc $(cat filelist.txt) | grep total | awk '{print $1}') | zstd -o /mnt/user/VMbackup/\"$backupName\".tar.zst");
+break;
+case "shutdownWS":
+    #  qemu-img convert -O raw
+    break;
+    case "activeNS":
+        break;
+        case "activeWS":
+            break;
+}
+?>
