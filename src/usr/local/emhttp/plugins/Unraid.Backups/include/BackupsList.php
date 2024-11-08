@@ -21,15 +21,17 @@ require_once "$docroot/webGui/include/Translations.php";
 /* If the configuration is pools only, then no array disks are available. */
 $poolsOnly	= ((int)$var['SYS_ARRAY_SLOTS'] <= 2) ? true : false;
 
-$backuparray = ["Test" => 
+$backuparray = ["Collection" => [
+  "Test" => 
                 ["source" => "Testfrom",
                 "destination" => "Testto",
                 "enabled" => true,
                 "schedules" => "HDWMY",
                 "progress" => "Running",
                 "nextrun" => "20240801 00:01",
-
+  ],
 ],
+"Filesystems" => [
           "Cloud" => 
                 ["source" => "ZFSPool:Testfrom",
                 "destination" => "Cloud:AWS S3",
@@ -37,8 +39,9 @@ $backuparray = ["Test" =>
                 "schedules" => "HDWMY",
                 "progress" => "Pending",
                 "nextrun" => "20240801 01:00",
-
 ],
+],
+"VM" => [
                 "vms" => 
                 ["source" => "xfsPool:Testfrom",
                 "destination" => "Cloud:AWS S3",
@@ -57,12 +60,14 @@ $backuparray = ["Test" =>
                   "postscript" => "script post",
                 ]
 
-                ]
+                ],],
+"Containers" => [],
+"System" => [],
               ];
 
 #file_put_contents("/boot/config/plugins/Unraid.Backups/backups.json",json_encode($backuparray,JSON_PRETTY_PRINT));
 
-$backuparray = json_decode(file_get_contents("/boot/config/plugins/Unraid.Backups/backups.json"),true);
+#$backuparray = json_decode(file_get_contents("/boot/config/plugins/Unraid.Backups/backups.json"),true);
 
 
 /* Check for any files in the share. */
@@ -223,7 +228,9 @@ else
 
 // Build table
 $row = 0;
-foreach ($backuparray as $name => $share) {
+foreach ($backuparray as $collection => $collectiond) {
+  echo "<tr><td>$collection</td></tr>";
+  foreach($collectiond as $name => $share) {
 	/* Check if poolsOnly is true */
 	$array	= $share['cachePool2'] ? ucfirst($share['cachePool2']) : "<i class='fa fa-database fa-fw'></i>"._('Array');
 	if ($poolsOnly) {
@@ -249,8 +256,9 @@ foreach ($backuparray as $name => $share) {
     case 2: $luks = "<a class='info' onclick='return false'><i class='padlock fa fa-unlock-alt orange-text'></i><span>"._('Some or all files unencrypted')."</span></a>"; break;
    default: $luks = "<a class='info' onclick='return false'><i class='padlock fa fa-lock red-text'></i><span>"._('Unknown encryption state')."</span></a>"; break;
   } else $luks = "";
-  echo "<tr><td><a class='view' href=\"/$path/Browse?dir=/mnt/user/",rawurlencode($name),"\"><i class=\"icon-u-tab\" title=\"",_('Browse')," /mnt/user/".rawurlencode($name),"\"></i></a>";
-  echo "<a class='info nohand' onclick='return false'><i class='fa fa-$orb orb $color-orb'></i><span style='left:18px'>$help</span></a>$luks<a href=\"/$path/BackupsDetail?name=";
+  #echo "<tr><td>$collection</td><td>";
+  #<a class='view' href=\"/$path/Browse?dir=/mnt/user/",rawurlencode($name),"\"><i class=\"icon-u-tab\" title=\"",_('Browse')," /mnt/user/".rawurlencode($name),"\"></i></a>";
+  echo "<tr><td></td><td><a class='info nohand' onclick='return false'><i class='fa fa-$orb orb $color-orb'></i><span style='left:18px'>$help</span></a>$luks<a href=\"/$path/BackupsDetail?name=";
   echo rawurlencode($name),"\" onclick=\"$.cookie('one','tab1')\">$name</a></td>";
   echo "<td>{$share['source']}</td>";
   echo "<td>{$share['destination']}</td>";
@@ -279,8 +287,10 @@ foreach ($backuparray as $name => $share) {
     $perc=50;
     echo "<td>{$share['progress']}<div class='usage-disk' style='width:50%'><span style='width:$perc%' class='greenbar'></span><span>"._("Percentage Complete ").$perc."%</span></div></td>";
     echo "<td>",$share['nextrun'],"</td>";
-    echo "</tr>";
+
   
+}
+echo "</tr>";
 }
 if ($row==0) echo $noshares;
 ?>

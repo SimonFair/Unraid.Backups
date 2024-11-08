@@ -47,7 +47,7 @@ $nodisks	= checkDisks($disks) ? "" : "disabled";
 ?>
 
 <table class="unraid backups_status">
-<thead><tr><td>_(Name)_</td><td>_(Source)_</td><td>_(Destination)_</td><td>_(Schedules)_</td><td>_(Enabled)_</td><td>_(Run/Progress)_</td><td>_(Next run)_</td></tr></thead>
+<thead><tr><td>_(Type)_</td><td>_(Name)_</td><td>_(Source)_</td><td>_(Destination)_</td><td>_(Schedules)_</td><td>_(Enabled)_</td><td>_(Run/Progress)_</td><td>_(Next run)_</td></tr></thead>
 <tbody id="backupslist"></tbody>
 </table>
 
